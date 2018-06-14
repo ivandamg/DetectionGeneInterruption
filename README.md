@@ -21,6 +21,21 @@ Analysis consist on identify if a gene have a similar homolog, complete, incompl
 
 Use genome assemblies that are complete, assembled in a single contig. To avoid the confunding effect of the miss assemblies and gene interruptions. (ex. If the assembly contain 300 contigs, and gene has two blast hit in different contigs, it could be that the contig is duplicated in the assembly, and the 2 hits are the result of the missassembly and not that the gene is duplicated or interrupted )
 
-1. Blasting the gene on the genome assemblies. by using tblastn. 
+# 1. Selection of query. 
+Identification of genes to detect in different genomes assemblies.
+ex. comA gene in acinetobacter baumannii.  
+
+# 2. Blasting the gene on the genome assemblies. by using tblastn. 
+
+
+# 3. Extract sequence interrupting the gene
+
+- Extract sequence
+
+- Identify genes inside sequence.
+
+- Identify IS elements inside sequence.
+
+
 
 2. Curate Manuallymiss
