@@ -57,4 +57,4 @@ Blast to IS element database https://isfinder.biotoul.fr/
 
 # 4. Plot the gene interruptions. 
 
-R markdown tutorial of plotting gene interruptions in several strains. 
+R markdown tutorial of plotting gene interruptions and show some statistics of several strains. 
