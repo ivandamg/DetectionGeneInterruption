@@ -27,15 +27,16 @@ ex. comA gene in acinetobacter baumannii.
 
 # 2. Blasting the gene on the genome assemblies. by using tblastn. 
 
-
-# 3. Extract sequence interrupting the gene
-
-- Extract sequence
+Create db of genome assembly and blast gene to genome assembly
 
       # create db 
       makeblastdb -dbtype nucl -in STRAIN_ASSEMBLY -parse_seqids -out STRAINdbFILE1_db 
       # tblastn
       tblastn -db STRAIN_db -outfmt 6 -evalue 1e-8 -show_gis -num_alignments 1 -max_hsps 20 -num_threads 30 -out blastProteinSeq_in_Strain.xml -query ProteinSeq.faa
+
+# 3. Extract sequence interrupting the gene
+
+- Extract sequence
       
       # extractregion with coordinates
       blastdbcmd -entry 'SCAFFOLD' -db STRAINdbFILE1_db -range minPosition-maxPosition > Destination/FileStrain1.fa
