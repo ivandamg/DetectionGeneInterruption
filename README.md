@@ -32,9 +32,21 @@ ex. comA gene in acinetobacter baumannii.
 
 - Extract sequence
 
-- Identify genes inside sequence.
+      # create db 
+      makeblastdb -dbtype nucl -in STRAIN_ASSEMBLY -parse_seqids -out STRAINdbFILE1_db 
+      # tblastn
+      tblastn -db STRAIN_db -outfmt 6 -evalue 1e-8 -show_gis -num_alignments 1 -max_hsps 20 -num_threads 30 -out blastProteinSeq_in_Strain.xml -query ProteinSeq.faa
+      
+      # extractregion with coordinates
+      blastdbcmd -entry 'SCAFFOLD' -db STRAINdbFILE1_db -range minPosition-maxPosition > Destination/FileStrain1.fa
 
+- Annotate sequence.
+Use Prokka      
+                        
+        ~/software/prokka-1.12/prokka/bin/prokka --outdir Annotation_FOLDER --genus GENUS --species SPECIES --strain STRAIN --locustag GS_STRAIN --prefix FILEPREFIX_Prokka --rfam --usegenus Destination/File.fa
+                        
 - Identify IS elements inside sequence.
+Blast to IS element database https://isfinder.biotoul.fr/
 
 
 
