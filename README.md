@@ -42,13 +42,19 @@ Create db of genome assembly and blast gene to genome assembly
       blastdbcmd -entry 'SCAFFOLD' -db STRAINdbFILE1_db -range minPosition-maxPosition > Destination/FileStrain1.fa
 
 - Annotate sequence.
-Use Prokka      
+Use Prokka    
                         
         ~/software/prokka-1.12/prokka/bin/prokka --outdir Annotation_FOLDER --genus GENUS --species SPECIES --strain STRAIN --locustag GS_STRAIN --prefix FILEPREFIX_Prokka --rfam --usegenus Destination/File.fa
-                        
+
+Or genemark to detect Open reading frame (ORF). http://opal.biology.gatech.edu/GeneMark/
+           
+                     
+             
 - Identify IS elements inside sequence.
 Blast to IS element database https://isfinder.biotoul.fr/
 
 
 
-2. Curate Manuallymiss
+# 4. Plot the gene interruptions. 
+
+R markdown tutorial of plotting gene interruptions in several strains. 
