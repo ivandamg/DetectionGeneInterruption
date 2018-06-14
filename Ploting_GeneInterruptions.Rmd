@@ -1,0 +1,205 @@
+---
+title: "Ploting Gene interruptions in R"
+author: "IM"
+date: "June 14, 2018"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy.opts=list(width.cutoff=65),tidy=TRUE,fig.pos = "!h")
+```
+
+## Visualization of Gene interruption. Example of Acinetobacter baumannii gene ComA
+
+This scrips help to visualize genes interrupted in several strains. It imports different type of data: 
+1. Blast output
+2. Sequence annotations
+3. IS blast outpout.
+
+Finally, it also make some sequence statistics as sequence length, SNPS, Synonimous /Non-synonimous modifications.
+
+
+## Add libraries
+```{r ,warning=FALSE,message=FALSE}
+
+library('ggplot2')
+library(PopGenome)
+options(digits=2)
+
+```
+
+
+## Import the annotation of the sequence
+This part import the output of the gene prediction on the sequences
+```{r ,warning=FALSE,message=FALSE}
+gff<-read.table('~/Documents/EPFL/A_baumannii/Reference_sequences/ALL_Abaum_vf/ALL_Analysis_V2/db_genomes_all/V2_all_comA/ALL_V2_comA_CDS.gff', sep="\t")
+# modify GFF names
+strain<-lapply(strsplit(as.character(gff$V1),"_"),function (x) x[length(x)])
+gff$V1<-unlist(strain)
+gff$V1<-gsub(" ","",gff$V1)
+order_comA<-gsub(" ","",gff$V1)
+
+# head of annotation file
+head(gff)
+```
+
+
+
+
+## Import info from IS elements in the sequence
+We used the online IS elements database, to blast the Coding regions in the sequences and then imported the tabular output of this result. 
+```{r ,warning=FALSE,message=FALSE}
+MGE<-read.table("~/Documents/EPFL/A_baumannii/Reference_sequences/ALL_Abaum_vf/ALL_Analysis_V2/db_genomes_all/V2_all_comA/ALL_V2_comA_ISfinder.txt", sep="\t")
+head(MGE)
+# modify names
+strain<-lapply(strsplit(as.character(MGE$V1),"_"),function (x) x[length(x)])
+MGE$V1<-unlist(strain)
+
+# discard samples with IS > 1M
+#MGE<-MGE[MGE$V1!="XH859",]
+#MGE<-MGE[MGE$V1!="AC12",]
+MGE<-MGE[,c(1,2,3,7,8,4,9,10,11)]
+colnames(MGE)<-c("V1","V2","V3","V4","V5","V6","V7","V8","V9")
+
+# head of data frame containing IS element info
+head(MGE)
+```
+
+
+
+## Merge the two data frames. Annotation + IS elements
+```{r ,warning=FALSE,message=FALSE}
+
+ALL2<-rbind.data.frame(gff,MGE)
+
+```
+
+## Select only strains with interruption (selection by name)
+```{r ,warning=FALSE,message=FALSE}
+ALL2<-ALL2[with(ALL2, order(V1)), ]
+ALL2<-ALL2[ALL2$V1 %in% c("SDF","6200","AB0057","WKA02","2011ZJAB4","NCGM237","KAB05","AbA118","ATCC17978Yale","ATCC19606"),]
+
+summary(ALL2)
+```
+
+## Create skeletton of figure
+We make the figure in two steps. 1. We firstcreate the tracks for the strains. we asign the number of strains to plot and the length of the sequences. 2. We plot the CDS ans IS elements on those tracks.
+```{r ,warning=FALSE,message=FALSE}
+Xm<-list()
+XM<-list()
+for (i in levels(as.factor(ALL2$V1))) {
+  Xm[[i]]<-min(ALL2[ALL2$V1==i,4:5])
+  XM[[i]]<-max(ALL2[ALL2$V1==i,4:5])
+}
+
+# segment coordinates
+df<-cbind.data.frame(unlist(Xm),unlist(XM))
+df<-df[match(rle(ALL2$V1)[[2]],rownames(df)),]
+df<-cbind.data.frame(df,YM=seq(1,length(levels(as.factor(ALL2$V1))))+.02,Ym=seq(1,length(levels(as.factor(ALL2$V1))))-.02)
+
+
+
+df<-df[rownames(df) %in% c("SDF","6200","AB0057","WKA02","2011ZJAB4","NCGM237","KAB05","AbA118","ATCC17978Yale","ATCC19606"),]
+#plot total segments
+
+plotlines<-  ggplot(aes(xmin=df[,1], xmax=df[,2], ymin=df[,3], ymax= df[,4]),data=NULL)+ geom_rect()+ 
+  scale_y_discrete(breaks=seq(1:length(df$YM)), labels=rownames(df)) + 
+  annotate("text", x = -1000, y = (1:length(rownames(df))), label = rownames(df))
+head (df)
+```
+
+## Organize data to plot
+We organize the data into a compatible data frame and the plot the info of CDS and IS elements on the previous tracks.
+```{r ,warning=FALSE,message=FALSE}
+###############
+CDS_Ym<-rep(1:length(levels(as.factor(ALL2$V1))),rle(ALL2$V1)[[1]]) -0.45
+CDS_YM<-rep(1:length(levels(as.factor(ALL2$V1))),rle(ALL2$V1)[[1]]) +0.45
+df_CDS<-cbind.data.frame(ALL2$V4,ALL2$V5,CDS_Ym,CDS_YM)
+
+
+
+# colors non automatic
+colors_CDS<-rep("A",length(ALL2$V1))
+ALL2$V3<-as.character(ALL2$V3)
+
+colors_CDS[ALL2$V3=="CDS" ]<-"black"
+colors_CDS[is.na(ALL2$V3) ]<-"red"
+
+# final plot
+plotlines2 <- plotlines + geom_rect(aes(xmin=ALL2$V4, xmax=ALL2$V5, ymin=CDS_Ym, ymax= CDS_YM),data=NULL,
+                                    fill=colors_CDS, alpha=2/4) +
+  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "black"),
+                     axis.title.x=element_blank(),axis.title.y=element_blank(),axis.ticks.x=element_blank()) +
+  theme(plot.margin=unit(c(1,1,1.5,1.2),"cm"))
+head(df_CDS)
+
+```
+
+
+```{r ,warning=FALSE,message=FALSE, fig.cap="Sequence interruption",out.extra = '',fig.pos="h", fig.align="center"}
+
+
+plotlines2
+```
+We observe that several strains do not have the ComA gene interrupted (WKA2, KAB05, ATCC19606, ATCC17978Yale, Aba118 and 2011ZJAB4). We also observe that the SDF, NCGM237 and 6200 strains, have an insertion of an IS element. The interruption in ComA show us that different IS elements are inserted in different parts of the gene on the different strains.
+finally we observe a insertion of few nucleotides on AB0057 creating a frameshift of the sequence.
+
+## Sequence statistics
+Align all the sequences using ClustalO, then analyse nb of sites, SNPs, and Syn/non-Syn statistics.
+
+```{r ,warning=FALSE,message=FALSE}
+setwd('~/Documents/EPFL/A_baumannii/Reference_sequences/ALL_Abaum_vf/ALL_Analysis_V2/db_genomes_all/V2_all_comA/ClustalOalign/')
+
+# NEED TO ALIGN SEQUENCES AND PLACE IN FOLDER BEFOREHAND
+#clustalo --in ALL_V2_pilCblast2.fa --out ALL_V2_pilCblast2_align.fa
+
+# import aligned fasta
+GENOME.class <- readData('~/Documents/EPFL/A_baumannii/Reference_sequences/ALL_Abaum_vf/ALL_Analysis_V2/db_genomes_all/V2_all_comA/ClustalOalign/',
+                         include.unknown = F)
+
+# calculate statistics
+GENOME.class <- F_ST.stats(GENOME.class)
+GENOME.class <- neutrality.stats(GENOME.class)
+
+# get summary statistics
+get.sum.data(GENOME.class)
+
+#calculate Nb of synonimouss and nonsyn
+table(GENOME.class@region.data@synonymous[[1]]) # false is non-syn, True is syn
+
+
+# biallelic + syn
+syn<-GENOME.class@region.data@synonymous[[1]]
+syn[syn==TRUE]<- "Syn"
+syn[syn==FALSE]<- "Non_Syn"
+```
+
+## Plot Sequence statistics
+
+```{r ,warning=FALSE,message=FALSE, fig.cap="Sequence statistics",out.extra = '',fig.pos="h", fig.align="center",, fig.height=4, fig.width=5 }
+for (i in 1:dim(get.sum.data(GENOME.class))[1] ) {
+  
+  syn<-GENOME.class@region.data@synonymous[[i]]
+  syn[syn==TRUE]<- "Syn"
+  syn[syn==FALSE]<- "Non_Syn"
+  
+  stat1<-c(total_sites=get.sum.data(GENOME.class)[i,1], gaps=get.sum.data(GENOME.class)[i,3], na=get.sum.data(GENOME.class)[i,4],valid_sites=get.sum.data(GENOME.class)[i,5])
+  stat2<-c(biallelic_sites=get.sum.data(GENOME.class)[i,2], syn=length(syn[syn=="Syn"]),non_syn=length(syn[syn=="Non_Syn"]),transl_transv_ratio=get.sum.data(GENOME.class)[i,7])
+  stat2<-round(stat2,digits=2)
+  
+  barplot(stat1,col="black",names.arg = names(stat1),las=2,ylim=c(0,max(stat1)*1.2), main="Sites stats")
+  text(x = seq(1,length(stat1)), y = stat1, label = stat1, pos = 3, cex = 1, col = "black")
+
+  barplot(stat2,col="black",names.arg = names(stat2),las=2,ylim=c(0,max(stat2)*1.2), main="Biallelic sites stats")
+  text(x = seq(1,length(stat2)), y = stat2, label = stat2, pos = 3, cex = 1, col = "black")
+}
+```
+
+This Statistics show that the total number of sites is 3706. It also tell us that the minimum sequence length is about 2.7 kb (Figure 2). and that there were 566 sites that a SNP is present. 
+
+We then observed that the interrupted ComA gene sequence is very similar across the strains. There is only 12 synonimoius mutations. out of 457. 
+This result could be the result of the presence of frameshifts and insertion of IS elements on the different strains.
+
