@@ -5,7 +5,7 @@ Analysis of gene interruptions. Example in Acinetobacter baumannii.
 
 Analysis consist on identify if a gene have a similar homolog, complete, incomplete, frameshifted or interrupted. The best way to detect this, is to blast the gene to the genome. 
 
-The number of blast hits per genome will tell if: 
+# The number of blast hits per genome will tell if: 
 
       1 Blast hit: 
             - Gene is complete or incomplete.
@@ -18,7 +18,8 @@ The number of blast hits per genome will tell if:
             - if more than one blast hit with a difference larger than 100 nucleotides: gene is interrupted.
 
 
-0. Use genome assemblies that are complete, assembled in a single contig. To avoid the confunding effect of the miss assemblies and gene interruptions.
+
+Use genome assemblies that are complete, assembled in a single contig. To avoid the confunding effect of the miss assemblies and gene interruptions. (ex. If the assembly contain 300 contigs, and gene has two blast hit in different contigs, it could be that the contig is duplicated in the assembly, and the 2 hits are the result of the missassembly and not that the gene is duplicated or interrupted )
 
 1. Blasting the gene on the genome assemblies. by using tblastn. 
 
