@@ -42,6 +42,8 @@ Create db of genome assembly and blast gene to genome assembly
       blastdbcmd -entry 'SCAFFOLD' -db STRAINdbFILE1_db -range minPosition-maxPosition > Destination/FileStrain1.fa
 
 - Annotate sequence.
+
+
 Use Prokka    
                         
         ~/software/prokka-1.12/prokka/bin/prokka --outdir Annotation_FOLDER --genus GENUS --species SPECIES --strain STRAIN --locustag GS_STRAIN --prefix FILEPREFIX_Prokka --rfam --usegenus Destination/File.fa
