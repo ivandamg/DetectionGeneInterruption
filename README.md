@@ -1,7 +1,9 @@
 # DetectionGeneInterruption
 
 
-Analysis of gene interruptions. Example in Acinetobacter baumannii.
+Analysis of gene interruptions. 
+
+Example of the interruption of ComA gene in Acinetobacter baumannii.
 
 Analysis consist on identify if a gene have a similar homolog, complete, incomplete, frameshifted or interrupted. The best way to detect this, is to blast the gene to the genome. 
 
